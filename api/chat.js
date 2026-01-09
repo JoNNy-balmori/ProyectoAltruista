@@ -13,12 +13,17 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Falta la API Key en el servidor' });
   }
 
+  // --- AQUÍ ESTÁ EL CAMBIO ---
+  // Creamos el "Prompt Maestro" combinando tus instrucciones con el mensaje del usuario
+  const prompt = `Eres un experto en ciberseguridad, no contestes otras preguntas que no sean sobre ciberseguridad, se amable y cordial al momento de corregirlo, ademas contesta de manera corta y concisa. Ayuda al usuario con: "${message}"`;
+
   try {
-    // USANDO EL MODELO QUE TE FUNCIONA: gemini-2.5-flash-lite
+    // Usamos el modelo que te funcionó: gemini-2.5-flash-lite
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
+      // En "text" ahora enviamos el "prompt" completo, no solo el "message"
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
 
     const data = await response.json();
@@ -29,7 +34,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Error al contactar con Gemini', details: data });
     }
 
-    // 4. Extraer respuesta (con seguridad por si cambia el formato)
+    // 4. Extraer respuesta
     const textRespuesta = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar respuesta.";
     
     res.status(200).json({ reply: textRespuesta });
