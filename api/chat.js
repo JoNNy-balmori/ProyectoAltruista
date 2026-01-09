@@ -1,15 +1,21 @@
-// Archivo: api/chat.js
-
 export default async function handler(req, res) {
+  // 1. Solo permitimos POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  const { message } = req.body; // Esto coincide con tu: JSON.stringify({ message: userMessage })
+  const { message } = req.body;
+
+  // 2. Verificación de seguridad
+  if (!apiKey) {
+    console.error("ERROR: No hay API Key configurada en Vercel.");
+    return res.status(500).json({ error: 'Falta la API Key en el servidor' });
+  }
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+    // USANDO EL MODELO QUE TE FUNCIONA: gemini-2.5-flash-lite
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
@@ -17,15 +23,19 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // AQUÍ ESTÁ LA MAGIA:
-    // Extraemos solo el texto limpio de la respuesta de Gemini
-    const textRespuesta = data.candidates[0]?.content?.parts[0]?.text || "No entendí eso.";
+    // 3. Chequeo de errores de Google
+    if (!response.ok) {
+      console.error("Error de Google:", JSON.stringify(data, null, 2));
+      return res.status(500).json({ error: 'Error al contactar con Gemini', details: data });
+    }
 
-    // Devolvemos el objeto con la propiedad 'reply' que tu frontend espera
+    // 4. Extraer respuesta (con seguridad por si cambia el formato)
+    const textRespuesta = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar respuesta.";
+    
     res.status(200).json({ reply: textRespuesta });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ reply: "Hubo un error en el servidor." });
+    console.error("Error del servidor:", error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 }
