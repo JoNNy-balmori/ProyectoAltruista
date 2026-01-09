@@ -1,0 +1,20 @@
+{
+  "name": "proyecto-altruista",
+  "version": "1.0.0",
+  "description": "",
+  "main": "chat.js",
+  "scripts": {
+  "dev": "next dev",
+  "start": "next start",
+  "build": "next build"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1"
+  }
+}
