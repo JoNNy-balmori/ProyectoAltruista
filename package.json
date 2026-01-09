@@ -5,8 +5,7 @@
   "main": "chat.js",
   "scripts": {
   "dev": "next dev",
-  "start": "next start",
-  "build": "next build"
+  "start": "next start"
 },
   "keywords": [],
   "author": "",
